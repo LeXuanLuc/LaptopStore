@@ -41,7 +41,7 @@
                     </p>
                     <div class="hero-buttons">
                         <a href="@Url.Action("Index", "Product")" class="hero-btn-primary">
-                            <i class="fas fa-shopping-bag"></i> Mua ngay
+                            <i class="fas fa-eye"></i> Xem ngay
                         </a>
                     </div>
                     <div class="hero-search">
@@ -198,6 +198,7 @@
                         </div>
 
                         <div class="product-card-footer">
+                            @* 
                             @if (isInStock)
                             {
                                 <!-- Quantity Selector -->
@@ -227,6 +228,10 @@
                                     <i class="fas fa-times-circle"></i> Hết hàng
                                 </div>
                             }
+                            *@
+                            <a href="@Url.Action("Detail", "Product", new { id = product.Id })" class="view-all-btn mt-2" style="width: 100%; border-radius: 8px; justify-content: center;">
+                                <i class="fas fa-eye"></i> Xem ngay
+                            </a>
                         </div>
                     </div>
                 }
@@ -335,7 +340,7 @@
                 <ul class="footer-links">
                     <li><a href="@Url.Action("Index", "Home")"><i class="fas fa-chevron-right"></i> Trang chủ</a></li>
                     <li><a href="@Url.Action("Index", "Product")"><i class="fas fa-chevron-right"></i> Sản phẩm</a></li>
-                    <li><a href="@Url.Action("CartView", "Cart")"><i class="fas fa-chevron-right"></i> Giỏ hàng</a></li>
+                    @* <li><a href="@Url.Action("CartView", "Cart")"><i class="fas fa-chevron-right"></i> Giỏ hàng</a></li> *@
                     <li><a href="@Url.Action("Privacy", "Home")"><i class="fas fa-chevron-right"></i> Chính sách</a></li>
                 </ul>
             </div>

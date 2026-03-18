@@ -145,7 +145,6 @@ CREATE TABLE Reviews (
     product_id INT FOREIGN KEY REFERENCES Products(id),
     rating INT CHECK (rating >= 1 AND rating <= 5),
     comment NVARCHAR(MAX),
-    is_approved BIT DEFAULT 1,
     created_at DATETIME DEFAULT GETDATE()
 );
 
@@ -181,6 +180,24 @@ CREATE TABLE Notifications (
     type VARCHAR(50) DEFAULT 'system', -- Phân loại: 'order', 'promotion', 'system'
     created_at DATETIME DEFAULT GETDATE()
 );
+
+
+CREATE TABLE Email_Verification_Tokens (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    user_id INT NOT NULL,
+    token VARCHAR(100) NOT NULL,
+    created_at DATETIME DEFAULT GETDATE(),
+    expires_at DATETIME NOT NULL,
+    is_used BIT DEFAULT 0,
+        
+    CONSTRAINT FK_EmailVerificationTokens_Users 
+    FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IX_EmailVerificationTokens_Token ON Email_Verification_Tokens(token);
+CREATE INDEX IX_EmailVerificationTokens_UserId ON Email_Verification_Tokens(user_id);
+
+
 GO
 
 -- 3. THÊM DỮ LIỆU MẪU (SEED DATA - 10 RECORD EACH)

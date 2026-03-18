@@ -71,7 +71,6 @@ public class StockManagementController : Controller
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         var items = JsonSerializer.Deserialize<List<StockInItemDto>>(itemsJson, options);
 
-        Console.WriteLine($"Have {items?.Count ?? 0} item before confirm!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 
         var model = new StockInOrderRequest
         {
@@ -143,7 +142,7 @@ public class StockManagementController : Controller
 
         _context.SaveChanges();
 
-        return Ok(new { message = "Lưu đơn hàng thành công"});
+        return RedirectToAction("StockDetails", new { id = importReceiptId });
     }
 
 
@@ -156,10 +155,14 @@ public class StockManagementController : Controller
         }
         var orderDto = new StockInOrderResponse
         {
+            Id = id,
             SupplierName = order.SupplierName ?? "",
             StaffName = order.Staff?.FullName ?? "Không thấy",
+            StaffAvatarUrl = order.Staff?.AvatarUrl ?? "/images/image-not-found.jpg",
+            StaffEmail = order.Staff?.Email ?? "Không thấy",
             TotalCost = order.TotalCost,
             CreatedAt = order.CreatedAt ?? DateTime.Now,
+            Status = order.Status,
             DeliveredAt = order.DeliveredAt,
             Items = order.ImportDetails.Select(d => new StockInItemResponse
             {
@@ -172,20 +175,21 @@ public class StockManagementController : Controller
             }).ToList()
         };
 
-        switch (order.Status)
+        return View("~/Views/Manager/StockDetails.cshtml", orderDto);
+    }
+
+    [HttpPost]
+    public IActionResult CancelPendingReceipt(int id)
+    {
+        var receipt = _context.ImportReceipts.Include(r => r.ImportDetails).FirstOrDefault(r => r.Id == id);
+        if (receipt != null)
         {
-            case "pending":
-                orderDto.Status = "Đang chờ xử lý";
-                break;
-            case "success":
-                orderDto.Status = "Đã giao hàng";
-                break;
-            case "cancel":
-                orderDto.Status = "Đã hủy";
-                break;
+            _context.ImportDetails.RemoveRange(receipt.ImportDetails);
+            _context.ImportReceipts.Remove(receipt);
+            _context.SaveChanges();
         }
 
-        return View("~/Views/Manager/StockDetails.cshtml", orderDto);
+        return RedirectToAction("Index");
     }
 
 }

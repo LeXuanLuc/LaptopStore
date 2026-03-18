@@ -16,6 +16,9 @@
                     <label for="input-supplier-name" class="form-label fw-bold">Nhà cung cấp <span class="text-danger">*</span></label>
                     <input id="input-supplier-name" class="form-control" placeholder="Nhập tên nhà cung cấp..."
                            oninput="this.value = this.value.substring(0, 100)" />
+                    <span id="alert-supplier" class="text-danger d-none">
+                        Vui lòng nhập tên nhà cung cấp.
+                    </span>
                 </div>
 
                 <div class="col-md-6">
@@ -30,6 +33,9 @@
                             }
                         }
                     </select>
+                    <span id="alert-staff" class="text-danger d-none">
+                        Vui lòng chọn nhân viên phụ trách.
+                    </span>
                 </div>
             </div>
 
@@ -45,8 +51,10 @@
                     style="z-index: 1000; max-height: 300px; overflow-y: auto;" onmousedown="handleMouseDown()">
                 </ul>
             </div>
-
-            <div id="selectedContainer" class="row row-cols-1 g-3">
+            <span id="alert-product" class="text-danger d-none">
+                Vui lòng chọn ít nhất 1 sản phẩm.
+            </span>
+            <div id="selectedContainer" class="row row-cols-1 g-3 mt-2">
                 <div class="col-12 text-center text-muted py-5" id="emptyNote">
                     <p>Chưa có sản phẩm nào được chọn.</p>
                 </div>
@@ -218,22 +226,33 @@
         }
     }
 
-     async function submitData() {
+    async function submitData() {
         const supplierName = document.getElementById('input-supplier-name').value;
         const staffId = document.getElementById('input-staff-id').value;
 
+        const alertSupplier = document.getElementById('alert-supplier');
+        const alertStaff = document.getElementById('alert-staff');
+        const alertProduct = document.getElementById('alert-product');
+        alertSupplier.classList.add('d-none');
+        alertStaff.classList.add('d-none');
+        alertProduct.classList.add('d-none');
+        
+        let hasError = false;
+
         if (!supplierName) {
-            alert("Vui lòng nhập tên nhà cung cấp!");
-            return;
+            alertSupplier.classList.remove('d-none');
+            hasError = true;
         }
         if (!staffId) {
-            alert("Vui lòng chọn nhân viên phụ trách!");
-            return;
+            alertStaff.classList.remove('d-none');
+            hasError = true;
         }
         if (selectedList.length === 0) {
-            alert("Vui lòng chọn ít nhất một sản phẩm!");
-            return;
+            alertProduct.classList.remove('d-none');
+            hasError = true;
         }
+
+        if (hasError) return;
 
         const form = document.createElement('form');
         form.method = 'POST';

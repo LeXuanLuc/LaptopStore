@@ -32,8 +32,9 @@ public class ProductManagementController : Controller
 
         ViewBag.Categories = new SelectList(_context.Categories, "Id", "Name", categoryId);
         ViewBag.Brands = new SelectList(_context.Brands, "Id", "Name", brandId);
-        ViewBag.SearchString = searchString;
+        ViewBag.SearchString = searchString.Trim();
         ViewBag.StatusList = new SelectList(statusList, "Value", "Text", status);
+        ViewBag.TotalProducts = await _context.Products.CountAsync();
 
         var productsQuery = _context.Products
             .Include(p => p.Category)
@@ -125,7 +126,9 @@ public class ProductManagementController : Controller
         worksheet.Cell(1, 10).Value = "Ổ cứng";
         worksheet.Cell(1, 11).Value = "GPU";
         worksheet.Cell(1, 12).Value = "Màn hình";
-        worksheet.Cell(1, 13).Value = "Trạng thái";
+        worksheet.Cell(1, 13).Value = "Cân nặng";
+        worksheet.Cell(1, 14).Value = "Trạng thái";
+        worksheet.Cell(1, 15).Value = "Ngày tạo";
 
         // Data rows
         int row = 2;
@@ -144,7 +147,9 @@ public class ProductManagementController : Controller
             worksheet.Cell(row, 10).Value = product.HardDrive ?? "";
             worksheet.Cell(row, 11).Value = product.Gpu ?? "";
             worksheet.Cell(row, 12).Value = product.ScreenSize ?? "";
-            worksheet.Cell(row, 13).Value = product.IsActive == true ? "Đang bán" : "Ngừng bán";
+            worksheet.Cell(row, 13).Value = product.Weight ?? "0kg";
+            worksheet.Cell(row, 14).Value = product.IsActive == true ? "Đang bán" : "Ngừng bán";
+            worksheet.Cell(row, 15).Value = product.CreatedAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
             if (row % 2 == 0)
             {
@@ -186,7 +191,7 @@ public class ProductManagementController : Controller
         {
             if (price < 1000 || price > 1000000000)
             {
-                ModelState.AddModelError("Price", "Giá phải nằm trong khoảng 1000 đến 1000000000");
+                ModelState.AddModelError("Price", "Giá phải nằm trong khoảng 1.000 đến 1.000.000.000");
             }
         }
 

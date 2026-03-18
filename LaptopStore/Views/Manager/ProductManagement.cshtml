@@ -1,17 +1,31 @@
-﻿@using LaptopStore.Models
+﻿@using System.Globalization
+@using LaptopStore.Models
 @model PaginatedList<LaptopStore.DTOs.ProductDTOs.ProductResponse>
 
 @{
     ViewData["Title"] = "Quản lý sản phẩm";
     ViewData["Subtitle"] = "Quản lý danh sách sản phẩm trong hệ thống";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    
+    var searchString = ViewBag.SearchString as string ?? "";
+
+    var categoryList = ViewBag.Categories as SelectList;
+    var categoryItem = categoryList?.FirstOrDefault(x => x.Selected || x.Value == Context.Request.Query["categoryId"]);
+    var categoryName = categoryItem?.Text ?? "Tất cả";
+
+    var brandList = ViewBag.Brands as SelectList;
+    var brandItem = brandList?.FirstOrDefault(x => x.Selected || x.Value == Context.Request.Query["brandId"]);
+    var brandName = brandItem?.Text ?? "Tất cả";
+
+    var statusList = ViewBag.StatusList as SelectList;
+    var statusItem = statusList?.FirstOrDefault(x => x.Selected || x.Value == Context.Request.Query["status"]);
+    var statusName = statusItem?.Text ?? "Tất cả";
 }
 
 <!-- Page Header -->
 <div class="page-header">
     <div class="page-header-left">
-        <h2>Danh sách sản phẩm</h2>
-        <p>Quản lý kho hàng và thông tin sản phẩm</p>
+        <h1>Danh sách sản phẩm</h1>
     </div>
     <a asp-controller="ProductManagement" asp-action="AddNewProduct" class="btn btn-primary">
         <i class="fas fa-plus"></i>
@@ -27,11 +41,11 @@
                 <label class="form-label">Tìm kiếm</label>
                 <div class="search-input">
                     <i class="fas fa-search"></i>
-                    <input type="text" name="searchString" class="form-control" value="@ViewBag.SearchString" placeholder="Tên sản phẩm, SKU...">
+                    <input type="text" name="searchString" class="form-control" value="@searchString" placeholder="Tên sản phẩm, SKU...">
                 </div>
             </div>
             <div class="col-6 col-md-3 col-lg-2">
-                <label class="form-label">Phân loại</label>
+                <label class="form-label">Danh mục</label>
                 <select name="categoryId" asp-items="ViewBag.Categories" class="form-control form-select" onchange="this.form.submit()">
                     <option value="0">Tất cả</option>
                 </select>
@@ -67,7 +81,23 @@
         <h5 class="card-title mb-0">
             <i class="fas fa-box-open"></i>
             Sản phẩm trong kho
-            <span class="badge badge-light ms-2">@Model?.TotalItems tổng</span>
+            <span class="badge badge-light ms-2">@(Model.Count)/@(ViewBag.TotalProducts) tổng</span>
+            @if (!string.IsNullOrEmpty(searchString))
+            {
+                <span class="badge badge-light ms-2">Từ khóa: "@ViewBag.SearchString"</span>
+            }
+            @if (categoryName != "Tất cả")
+            {
+                <span class="badge badge-light ms-2">Danh mục: @categoryName</span>
+            }
+            @if (brandName != "Tất cả")
+            {
+                <span class="badge badge-light ms-2">Thương hiệu: @brandName</span>
+            }
+            @if (statusName != "Tất cả")
+            {
+                <span class="badge badge-light ms-2">Trạng thái: @statusName</span>
+            }
         </h5>
         <div class="d-flex gap-2">
             <a href="@Url.Action("ExportExcel")" class="btn btn-sm btn-secondary">
@@ -127,8 +157,10 @@
                             <td>
                                 <div class="table-product">
                                     <div class="table-product-img">
-                                        <img src="@(product.ProductImages?.FirstOrDefault(i => i.IsThumbnail)?.ImageUrl ?? "/images/default-product.png")" 
-                                             alt="@product.Name" />
+                                        <a asp-action="ProductDetails" asp-route-id="@product.Id">
+                                            <img src="@(product.ProductImages?.FirstOrDefault(i => i.IsThumbnail)?.ImageUrl ?? "/images/default-product.png")"
+                                                 alt="@product.Name" />
+                                        </a>
                                     </div>
                                     <div class="table-product-info">
                                         <a asp-action="ProductDetails" asp-route-id="@product.Id" 
@@ -144,7 +176,7 @@
                             </td>
                             <td>@product.BrandName</td>
                             <td>
-                                <span class="fw-bold text-primary">@product.Price.ToString("#,##0") ₫</span>
+                                <span class="fw-bold text-primary text-nowrap">@(product.Price.ToString("N0", new CultureInfo("vi-VN")) ?? "---") đ</span>
                             </td>
                             <td>
                                 <span class="badge @stockClass">

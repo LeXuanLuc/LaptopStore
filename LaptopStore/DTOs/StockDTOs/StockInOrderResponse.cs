@@ -25,6 +25,7 @@ public class StockInOrderResponse
 
 public class  StockInItemResponse
 {
+    public int DetailId { get; set; }
     public int ProductId { get; set; }
 
     public string ProductName { get; set; } = "";

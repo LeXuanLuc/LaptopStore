@@ -393,8 +393,7 @@
             font-weight: 500;
             transition: all 0.2s ease;
         }
-
-        .btn-logout-confirm:hover {
+confirm:hover {
             background: #c53030;
         }
 
@@ -405,6 +404,7 @@
                 right: -60px;
             }
         }
+        .btn-logout-
     </style>
 </head>
 <body>
@@ -481,6 +481,10 @@
                                         <a class="profile-dropdown-item" asp-controller="User" asp-action="Profile">
                                             <i class="fas fa-user"></i>
                                             <span>Xem tài khoản</span>
+                                        </a>
+                                        <a class="profile-dropdown-item" asp-controller="Order" asp-action="OrderHistory">
+                                            <i class="fas fa-user"></i>
+                                            <span>Đơn hàng của tôi</span>
                                         </a>
                                         <button class="profile-dropdown-item" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
                                             <i class="fas fa-lock"></i>

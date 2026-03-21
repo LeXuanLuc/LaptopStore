@@ -51,6 +51,20 @@
                                 <small class="text-muted mt-1 d-block">Một email xác thực sẽ được gửi đến địa chỉ này.</small>
                             </div>
                         </div>
+                        <div class="col-12 col-md-6">
+                            <div class="form-group mb-0">
+                                <label asp-for="PhoneNumber" class="form-label">Số điện thoại</label>
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="0912000000" />
+                                <span asp-validation-for="PhoneNumber" class="text-danger" style="font-size: 0.8rem;"></span>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="form-group mb-0">
+                                <label asp-for="Address" class="form-label">Địa chỉ</label>
+                                <input asp-for="Address" class="form-control" placeholder="Hà Nội" />
+                                <span asp-validation-for="Address" class="text-danger" style="font-size: 0.8rem;"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

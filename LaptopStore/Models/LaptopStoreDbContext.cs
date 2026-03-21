@@ -461,7 +461,9 @@ public partial class LaptopStoreDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__Users__3213E83FA19A77CF");
 
-            entity.HasIndex(e => e.PhoneNumber, "UQ__Users__A1936A6BB8BC7BA3").IsUnique();
+            entity.HasIndex(e => e.PhoneNumber, "UQ__Users__A1936A6BB8BC7BA3")
+                .IsUnique()
+                .HasFilter("[phone_number] IS NOT NULL");
 
             entity.HasIndex(e => e.Email, "UQ__Users__AB6E6164BDF3686F").IsUnique();
 

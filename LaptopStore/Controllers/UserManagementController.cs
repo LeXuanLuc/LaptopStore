@@ -192,7 +192,13 @@ namespace LaptopStore.Controllers
             {
                 if (await _context.Users.AnyAsync(u => u.Email == model.Email))
                 {
-                    ModelState.AddModelError("Email", "Email đã tồn tại");
+                    ModelState.AddModelError("Email", "Email đã tồn tại trong hệ thống");
+                    return View("~/Views/Manager/UserCreate.cshtml", model);
+                }
+
+                if (!string.IsNullOrEmpty(model.PhoneNumber) && await _context.Users.AnyAsync(u => u.PhoneNumber == model.PhoneNumber))
+                {
+                    ModelState.AddModelError("PhoneNumber", "Số điện thoại đã tồn tại trong hệ thống");
                     return View("~/Views/Manager/UserCreate.cshtml", model);
                 }
 
@@ -201,14 +207,24 @@ namespace LaptopStore.Controllers
                     Email = model.Email,
                     Password = BCryptNet.HashPassword(Guid.NewGuid().ToString()), // Random password initially
                     FullName = model.FullName,
+                    PhoneNumber = model.PhoneNumber,
+                    Address = model.Address,
                     Role = "staff", // Always create as staff
                     Status = "pending", // Status pending verification
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
                 };
 
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
+                try
+                {
+                    _context.Users.Add(user);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateException)
+                {
+                    ModelState.AddModelError("Email", "Email hoặc số điện thoại đã tồn tại trong hệ thống");
+                    return View("~/Views/Manager/UserCreate.cshtml", model);
+                }
 
                 // Generate Auth Token
                 var verificationToken = await _authService.GenerateEmailVerificationTokenAsync(user.Id);

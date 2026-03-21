@@ -1,6 +1,7 @@
-﻿using LaptopStore.DTOs.ProductDTOs;
+using LaptopStore.DTOs.ProductDTOs;
 using LaptopStore.DTOs.StockDTOs;
 using LaptopStore.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;

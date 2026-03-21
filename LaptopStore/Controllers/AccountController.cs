@@ -71,10 +71,10 @@ namespace LaptopStore.Controllers
                     return RedirectToAction("VerificationSent");
                 }
 
-                // Chỉ hiển thị thông báo đơn giản, không có dấu *
-                var errorMessage = result.ErrorMessage?.Contains("Tài khoản") == true 
-                    ? "Tài khoản hoặc mật khẩu không chính xác"
-                    : result.ErrorMessage ?? "Tài khoản hoặc mật khẩu không chính xác";
+                // Giữ nguyên thông báo khóa tài khoản, còn lại hiển thị lỗi chung
+                var errorMessage = result.ErrorMessage?.Contains("bị khóa") == true
+                    ? result.ErrorMessage
+                    : "Tài khoản hoặc mật khẩu không chính xác";
                 
                 ModelState.AddModelError(string.Empty, errorMessage);
                 TempData["ToastMessage"] = errorMessage;
@@ -514,6 +514,23 @@ namespace LaptopStore.Controllers
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation("New user registered via Google: {Email}", email);
+                }
+
+                // Kiểm tra tài khoản chưa xác thực
+                if (string.Equals(user.Status, "pending", StringComparison.OrdinalIgnoreCase))
+                {
+                    TempData["ToastMessage"] = "Tài khoản chưa được xác thực. Vui lòng kiểm tra email của bạn.";
+                    TempData["ToastType"] = "warning";
+                    return RedirectToAction("Login");
+                }
+
+                // Kiểm tra tài khoản bị khóa (banned hoặc bất kỳ trạng thái nào không phải active)
+                if (!string.Equals(user.Status, "active", StringComparison.OrdinalIgnoreCase))
+                {
+                    var banReason = !string.IsNullOrEmpty(user.BanReason) ? $" Lý do: {user.BanReason}" : "";
+                    TempData["ToastMessage"] = $"Tài khoản của bạn đã bị khóa.{banReason}. Vui lòng liên hệ hỗ trợ.";
+                    TempData["ToastType"] = "error";
+                    return RedirectToAction("Login");
                 }
 
                 // Đăng nhập

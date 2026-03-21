@@ -49,7 +49,7 @@
             <div class="stat-icon">
                 <i class="fas fa-user-clock"></i>
             </div>
-            <div class="stat-label">Chờ duyệt</div>
+            <div class="stat-label">Chờ xác thực</div>
             <div class="stat-value">@ViewBag.PendingCount</div>
         </div>
     </div>
@@ -80,7 +80,7 @@
                 <select class="form-control form-select" id="statusFilter">
                     <option value="">Tất cả</option>
                     <option value="active">Hoạt động</option>
-                    <option value="pending">Chờ duyệt</option>
+                    <option value="pending">Chờ xác thực</option>
                     <option value="banned">Đã khóa</option>
                 </select>
             </div>
@@ -154,7 +154,7 @@
                         var statusText = user.Status switch
                         {
                             "active" => "Hoạt động",
-                            "pending" => "Chờ duyệt",
+                            "pending" => "Chờ xác thực",
                             "banned" => "Đã khóa",
                             _ => user.Status
                         };

@@ -388,8 +388,10 @@ namespace LaptopStore.Controllers
                  return RedirectToAction("Login");
             }
 
-            // Update password
+            // Update password, phone number, and address
             user.Password = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+            user.PhoneNumber = model.PhoneNumber;
+            user.Address = model.Address;
             // Status is set to "active" by VerifyEmailTokenAsync already
             
             _context.Users.Update(user);

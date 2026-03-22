@@ -497,13 +497,13 @@ namespace LaptopStore.Controllers
 
                 if (user == null)
                 {
-                    // Tạo user mới từ Google
+                    // Tạo user mới từ Google — chưa có SĐT và password
                     var now = DateTime.Now;
                     user = new User
                     {
                         Email = email,
                         FullName = name,
-                        Password = string.Empty, // Google OAuth không cần password
+                        Password = "GOOGLE_OAUTH_PENDING", // Placeholder, sẽ được set trong GoogleSetup
                         Role = "customer",
                         Status = "active",
                         CreatedAt = now,
@@ -514,6 +514,15 @@ namespace LaptopStore.Controllers
                     await _context.SaveChangesAsync();
 
                     _logger.LogInformation("New user registered via Google: {Email}", email);
+
+                    // Redirect đến trang bổ sung thông tin
+                    return RedirectToAction("GoogleSetup", new { userId = user.Id });
+                }
+
+                // User đã tồn tại nhưng chưa bổ sung thông tin (SĐT null)
+                if (string.IsNullOrEmpty(user.PhoneNumber))
+                {
+                    return RedirectToAction("GoogleSetup", new { userId = user.Id });
                 }
 
                 // Kiểm tra tài khoản chưa xác thực
@@ -548,6 +557,81 @@ namespace LaptopStore.Controllers
                 TempData["ToastType"] = "error";
                 return RedirectToAction("Login");
             }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GoogleSetup(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                TempData["ToastMessage"] = "Không tìm thấy tài khoản.";
+                TempData["ToastType"] = "error";
+                return RedirectToAction("Login");
+            }
+
+            // Nếu user đã có SĐT rồi, không cần setup nữa
+            if (!string.IsNullOrEmpty(user.PhoneNumber))
+            {
+                await SignInUserAsync(user, false);
+                return RedirectToAction("Index", "Product");
+            }
+
+            var model = new GoogleSetupViewModel
+            {
+                UserId = user.Id,
+                Email = user.Email,
+                FullName = user.FullName
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GoogleSetup(GoogleSetupViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _context.Users.FindAsync(model.UserId);
+            if (user == null)
+            {
+                TempData["ToastMessage"] = "Không tìm thấy tài khoản.";
+                TempData["ToastType"] = "error";
+                return RedirectToAction("Login");
+            }
+
+            // Kiểm tra SĐT đã tồn tại chưa
+            if (await _authService.CheckPhoneExistsAsync(model.PhoneNumber))
+            {
+                ModelState.AddModelError(nameof(GoogleSetupViewModel.PhoneNumber),
+                    "Số điện thoại này đã được sử dụng.");
+                model.Email = user.Email;
+                model.FullName = user.FullName;
+                return View(model);
+            }
+
+            // Cập nhật thông tin
+            user.Password = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+            user.PhoneNumber = model.PhoneNumber;
+            user.Address = model.Address;
+            user.UpdatedAt = DateTime.Now;
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Google user {Email} completed setup", user.Email);
+
+            // Đăng nhập
+            await SignInUserAsync(user, false);
+
+            TempData["ToastMessage"] = $"Thiết lập thành công! Chào mừng {user.FullName ?? user.Email}";
+            TempData["ToastType"] = "success";
+
+            return RedirectToAction("Index", "Product");
         }
 
         #endregion

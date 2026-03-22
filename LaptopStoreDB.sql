@@ -1,4 +1,4 @@
-﻿-- 1. TẠO DATABASE
+-- 1. TẠO DATABASE
 CREATE DATABASE LaptopStoreDB;
 GO
 USE LaptopStoreDB;
@@ -12,14 +12,18 @@ CREATE TABLE Users (
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL, -- Lưu hash password
     full_name NVARCHAR(100),
-    phone_number VARCHAR(15) UNIQUE,
+    phone_number VARCHAR(15),
     address NVARCHAR(255),
 	avatar_url VARCHAR(255),
     role VARCHAR(20) DEFAULT 'customer' CHECK (role IN ('admin', 'staff', 'customer')),
-    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'banned')),
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'banned', 'pending')),
+    ban_reason NVARCHAR(500),
     created_at DATETIME DEFAULT GETDATE(),
     updated_at DATETIME DEFAULT GETDATE()
 );
+
+-- Filtered unique index: cho phép nhiều NULL (user đăng nhập Google chưa có SĐT)
+CREATE UNIQUE INDEX UQ__Users__phone_number ON Users(phone_number) WHERE phone_number IS NOT NULL;
 
 -- Bảng Categories (Danh mục)
 CREATE TABLE Categories (
@@ -145,6 +149,7 @@ CREATE TABLE Reviews (
     product_id INT FOREIGN KEY REFERENCES Products(id),
     rating INT CHECK (rating >= 1 AND rating <= 5),
     comment NVARCHAR(MAX),
+    is_approved BIT DEFAULT 1,
     created_at DATETIME DEFAULT GETDATE()
 );
 
@@ -179,6 +184,27 @@ CREATE TABLE Notifications (
     is_read BIT DEFAULT 0, -- 0: Chưa đọc, 1: Đã đọc
     type VARCHAR(50) DEFAULT 'system', -- Phân loại: 'order', 'promotion', 'system'
     created_at DATETIME DEFAULT GETDATE()
+);
+
+-- Bảng Wishlists (Danh sách yêu thích)
+CREATE TABLE Wishlists (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    user_id INT UNIQUE NOT NULL,
+    created_at DATETIME DEFAULT GETDATE(),
+
+    FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE CASCADE
+);
+
+-- Bảng Wishlist_Items (Chi tiết yêu thích)
+CREATE TABLE Wishlist_Items (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    wishlist_id INT NOT NULL,
+    product_id INT NOT NULL,
+    created_at DATETIME DEFAULT GETDATE(),
+
+    CONSTRAINT UK_Wishlist_Product UNIQUE(wishlist_id, product_id),
+    FOREIGN KEY (wishlist_id) REFERENCES Wishlists(id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES Products(id) ON DELETE CASCADE
 );
 
 
